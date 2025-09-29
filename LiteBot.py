@@ -1,6 +1,6 @@
-# LiteBot.py — Garena Account Checker (Termux/Server friendly)
+# LiteBot.py — Garena Account Checker (Termux/Server friendly, auto-copy results)
 # ใช้เฉพาะ "บัญชีของคุณเอง"
-import httpx, asyncio, time, csv, os
+import httpx, asyncio, time, csv, os, shutil
 from pathlib import Path
 from typing import List, Tuple
 from tqdm.asyncio import tqdm_asyncio
@@ -71,8 +71,20 @@ async def main():
             else:
                 w_fail.writerow([u,reason]); fail_count+=1
 
+    # เขียน valid_accounts.txt
     with open(VALID_TXT,"w",encoding="utf-8") as vf:
         vf.write("\n".join(valid_lines))
+
+    # ✅ Auto-copy ไปโฟลเดอร์ Download
+    download_dir = Path("/storage/emulated/0/Download")
+    if download_dir.exists():
+        for f in [WORKING_CSV, FAILED_CSV, VALID_TXT]:
+            try:
+                shutil.copy(f, download_dir / f.name)
+                log(f"copied {f.name} → Download/")
+            except Exception as e:
+                log(f"copy {f.name} failed: {e}")
+
     log(f"SUMMARY ok={ok_count} fail={fail_count} total={len(results)}")
     log("done.")
 
